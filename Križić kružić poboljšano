@@ -80,14 +80,13 @@ def play_game():
     print(f"Kompjuter igra sa: {ai_symbol}")
     
     if player_symbol == "X":
-        print("Počinješ ti!")
+        print("Ti počinješ!")
     else:
         print("Kompjuter počinje!")
     
     print("\nUnesi poziciju kao: red,stupac")
     print("Redovi: 1 (gornji), 2 (srednji), 3 (donji)")
     print("Stupci: 1 (lijevi), 2 (srednji), 3 (desni)")
-    print("Primjer: 1,3 = gornji desni kut\n")
     
     while True:
         if player_symbol == "O" and all(cell == " " for row in board for cell in row):
