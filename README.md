@@ -1,2 +1,2 @@
 # Krizic_Kruzic
-Igra gdje se dva uma međusobno natječu, tko pobjedi je ULTIMATIVNI GENIJE :)
+Naša najdraža igra iz djetinjstva sada i u digitalnom izdanju!
