@@ -1,7 +1,13 @@
-import tkinter as tk
 import random
 
-# --- LOGIKA
+def print_board(board):
+    print("\n")
+    print("     1   2   3")
+    for i in range(3):
+        print(f"{i+1}    {board[i][0]} | {board[i][1]} | {board[i][2]} ")
+        if i < 2:
+            print("    -----------")
+    print("\n")
 
 def check_winner(board, player):
     for row in board:
@@ -24,95 +30,122 @@ def is_board_full(board):
     return all(cell != " " for row in board for cell in row)
 
 def get_available_moves(board):
-    return [(i, j) for i in range(3) for j in range(3) if board[i][j] == " "]
+    moves = []
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == " ":
+                moves.append((i, j))
+    return moves
 
 def ai_move(board, ai_symbol):
     available = get_available_moves(board)
+    player_symbol = "O" if ai_symbol == "X" else "X"
 
-    # pobjednički potez
     for row, col in available:
         board[row][col] = ai_symbol
         if check_winner(board, ai_symbol):
-            board[row][col] = " "
             return (row, col)
         board[row][col] = " "
+    for row, col in available:
+        if any(
+        0 <= r < 3 and 0 <= c < 3 and board[r][c] == ai_symbol
+        for r, c in [(row-1,col),(row+1,col),(row,col-1),(row,col+1)]):
+            return (row, col)
+
+    best_moves = []
+
+    if (1,1) in available:
+     best_moves.append((1,1))
+
+    corners = [(0,0), (0,2), (2,0), (2,2)]
+
+    for c in corners:
+     if c in available:
+        best_moves.append(c)
+
+    if best_moves:
+     return random.choice(best_moves)
 
     return random.choice(available)
 
+def play_game():
+    board = [[" " for _ in range(3)] for _ in range(3)]
+    
+    print("=== KRIŽ-KRUŽIĆ ===")
 
-# --- GUI ---
+    player_symbol = random.choice(["X", "O"])
+    ai_symbol = "O" if player_symbol == "X" else "X"
+    
+    print(f"Ti igraš sa: {player_symbol}")
+    print(f"Kompjuter igra sa: {ai_symbol}")
+    
+    if player_symbol == "X":
+        print("Ti počinješ!")
+    else:
+        print("Kompjuter počinje!")
+    
+    print("\nUnesi poziciju kao: red,stupac")
+    print("Redovi: 1 (gornji), 2 (srednji), 3 (donji)")
+    print("Stupci: 1 (lijevi), 2 (srednji), 3 (desni)")
+    
+    while True:
+        if player_symbol == "O" and all(cell == " " for row in board for cell in row):
+            print("Kompjuter razmišlja...")
+            row, col = ai_move(board, ai_symbol)
+            board[row][col] = ai_symbol
+            print(f"Kompjuter je odigrao: ({row+1},{col+1})")
+            print_board(board)
+            
+            if check_winner(board, ai_symbol):
+                print("Kompjuter je pobijedio!")
+                break
+            
+            if is_board_full(board):
+                print("Neriješeno!")
+                break
+        
+        while True:
+            try:
+                move = input(f"Tvoj potez (red,stupac): ").split(",")
+                row = int(move[0].strip()) - 1
+                col = int(move[1].strip()) - 1
+                
+                if row < 0 or row > 2 or col < 0 or col > 2:
+                    print("Unesite brojeve između 1 i 3!")
+                    continue
+                
+                if board[row][col] != " ":
+                    print("Polje je već zauzeto!")
+                    continue
+                
+                board[row][col] = player_symbol
+                break
+            except (ValueError, IndexError):
+                print("Neispravan unos! Pokušaj ponovno (npr. 2,2)")
+        
+        if check_winner(board, player_symbol):
+            print_board(board)
+            print("Pobijedio si!")
+            break
+        
+        if is_board_full(board):
+            print_board(board)
+            print("Neriješeno!")
+            break
+        
+        print("Kompjuter razmišlja...")
+        row, col = ai_move(board, ai_symbol)
+        board[row][col] = ai_symbol
+        print(f"Kompjuter je odigrao: ({row+1},{col+1})")
+        print_board(board)
+        
+        if check_winner(board, ai_symbol):
+            print("Kompjuter je pobijedio!")
+            break
+        
+        if is_board_full(board):
+            print("Neriješeno!")
+            break
 
-root = tk.Tk()
-root.title("Križić-Kružić")
-
-board = [[" " for _ in range(3)] for _ in range(3)]
-buttons = [[None]*3 for _ in range(3)]
-
-player_symbol = random.choice(["X", "O"])
-ai_symbol = "O" if player_symbol == "X" else "X"
-current_turn = "X"
-
-status = tk.Label(root, text=f"Igraš kao: {player_symbol}")
-status.grid(row=3, column=0, columnspan=3)
-
-def on_click(row, col):
-    global current_turn
-
-    if board[row][col] != " ":
-        return
-
-    if current_turn != player_symbol:
-        return
-
-    # igrač
-    board[row][col] = player_symbol
-    buttons[row][col]["text"] = player_symbol
-
-    if check_winner(board, player_symbol):
-        status.config(text="Pobijedio si!")
-        disable_all()
-        return
-
-    if is_board_full(board):
-        status.config(text="Neriješeno!")
-        return
-
-    current_turn = ai_symbol
-    root.after(500, ai_turn)
-
-def ai_turn():
-    global current_turn
-
-    row, col = ai_move(board, ai_symbol)
-    board[row][col] = ai_symbol
-    buttons[row][col]["text"] = ai_symbol
-
-    if check_winner(board, ai_symbol):
-        status.config(text="Kompjuter je pobijedio!")
-        disable_all()
-        return
-
-    if is_board_full(board):
-        status.config(text="Neriješeno!")
-        return
-
-    current_turn = player_symbol
-
-def disable_all():
-    for i in range(3):
-        for j in range(3):
-            buttons[i][j]["state"] = "disabled"
-
-# kreiranje gumba (grid)
-for i in range(3):
-    for j in range(3):
-        btn = tk.Button(root, text=" ", width=10, height=4,
-                        command=lambda r=i, c=j: on_click(r, c))
-        btn.grid(row=i, column=j)
-        buttons[i][j] = btn
-
-# ako AI počinje
-if current_turn == ai_symbol:
-    root.after(500, ai_turn)
-
-root.mainloop()
+if __name__ == "__main__":
+    play_game()
