@@ -1,7 +1,7 @@
 import tkinter as tk
 import random
 
-# --- LOGIKA (većinom tvoja) ---
+# --- LOGIKA
 
 def check_winner(board, player):
     for row in board:
